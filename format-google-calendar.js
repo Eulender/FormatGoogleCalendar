@@ -15,9 +15,12 @@ var formatGoogleCalendar = (function() {
         var result = [];
 
         config = settings;
+        var finalURL = settings.calendarUrl;
+
+        if(settings.recurringEvents) finalURL = finalURL.concat("&singleEvents=true");
 
         //Get JSON, parse it, transform into list items and append it to past or upcoming events list
-        jQuery.getJSON(settings.calendarUrl, function(data) {
+        jQuery.getJSON(finalURL, function(data) {
             // Remove any cancelled events
             data.items.forEach(function removeCancelledEvents(item) {
                 if (item && item.hasOwnProperty('status') && item.status !== 'cancelled') {
@@ -133,7 +136,7 @@ var formatGoogleCalendar = (function() {
             isAllDayEvent = isAllDay(dateStart, dateEnd);
 
         if (moreDaysEvent) {
-          dateEnd = subtractOneDay(dateEnd);
+          dateStart = addOneDay(dateStart);
         }
 
         if (isAllDayEvent) {
@@ -216,6 +219,13 @@ var formatGoogleCalendar = (function() {
       return new Date(dateInfo[2], dateInfo[1], dateInfo[0], dateInfo[3], dateInfo[4] + 0, 0);
     };
 
+    //Add one day
+    var addOneDay = function (dateInfo) {
+     var date = getDateFormatted(dateInfo);
+     date.setTime(date.getTime() + 86400000);
+     return getDateInfo(date);
+     };
+    
     //Subtract one day
     var subtractOneDay = function (dateInfo) {
       var date = getDateFormatted(dateInfo);
@@ -376,6 +386,7 @@ var formatGoogleCalendar = (function() {
                 dayNames: true,
                 pastTopN: -1,
                 upcomingTopN: -1,
+                recurringEvents: true,
                 itemsTagName: 'li',
                 upcomingSelector: '#events-upcoming',
                 pastSelector: '#events-past',
